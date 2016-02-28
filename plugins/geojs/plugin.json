@@ -1,0 +1,8 @@
+{
+    "name": "GeoJS",
+    "description": "A plugin providing GeoJS views.",
+    "version": "0.1.0",
+    "grunt": {
+        "file": "Gruntfile.js"
+    }
+}

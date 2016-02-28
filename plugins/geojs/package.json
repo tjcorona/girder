@@ -1,0 +1,13 @@
+{
+  "name": "girder-geojs",
+  "version": "0.1.0",
+  "description": "A Girder plugin providing geojs views",
+  "keywords": [
+    "girder",
+    "geojs"
+  ],
+  "license": "Apache-2.0",
+  "dependencies": {
+    "geojs": "^0.8.0"
+  }
+}
