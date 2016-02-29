@@ -637,6 +637,13 @@ girderTest.waitForDialog = function (desc) {
 };
 
 /**
+ * Import a javascript file without blanket coverage.
+ */
+girderTest.addUncoveredScript = function (url) {
+    $('<script/>', {src: url}).appendTo('head');
+};
+
+/**
  * Import a javascript file and ask to register it with the blanket coverage
  * tests.
  */
@@ -652,7 +659,7 @@ girderTest.addCoveredScript = function (url) {
                                });
         });
     } else {
-        $('<script/>', {src: url}).appendTo('head');
+        girderTest.addUncoveredScript(url);
     }
 };
 

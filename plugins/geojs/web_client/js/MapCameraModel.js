@@ -1,7 +1,7 @@
 /**
  * Define a model that describes a map's camera.
  */
-girder.models.MapCameraModel = girder.ItemModel.extend({
+girder.models.MapCameraModel = girder.models.ItemModel.extend({
     defaults: {
         zoom: 3,         // tile zoom level
         x: 0,            // map center in x
