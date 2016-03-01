@@ -103,8 +103,8 @@ girder.views.GeoJSMapView = girder.View.extend({
             return this;
         }
 
-        // defensive programming
-        json.features = json.features || [];
+        // break apart multi features into arrays of single features
+        json.features = this._flattenFeatures(json.features || []);
 
         // collect all point features
         this.geojsMap._renderPoints(_.filter(
@@ -142,21 +142,23 @@ girder.views.GeoJSMapView = girder.View.extend({
      * an array of single geometries.
      */
     _flattenFeature: function (feature) {
-        var type = feature.type || '';
+        var type = (feature.geometry || {} ).type || '';
         if (type.match(/^Multi/)) {
             type = type.slice(5);
-            return _.map(feature.geometry || [], _.bind(function (geometry) {
-                return this._flattenFeature({
+            return _.map(feature.geometry.coordinates || [], _.bind(function (coordinates) {
+                var geometry = {
                     type: type,
+                    coordinates: coordinates
+                }
+                return this._flattenFeature({
+                    type: 'Feature',
                     geometry: geometry,
                     properties: feature.properties
                 })[0];
             }, this));
         }
 
-        return [_.extend({}, feature.properties || {}, {
-            coordinates: (feature.geometry || {}).coordinates
-        })];
+        return [feature];
     },
 
     /**
@@ -170,6 +172,7 @@ girder.views.GeoJSMapView = girder.View.extend({
      * Position accessor for geojson-like objects.
      */
     _position: function (d) {
+        d = d.geometry || {};
         return {
             x: d.coordinates[0],
             y: d.coordinates[1]
@@ -178,14 +181,15 @@ girder.views.GeoJSMapView = girder.View.extend({
 
     /**
      * Returns an accessor to a key in an object with a default value
-     * in case the object does not contain the given key.
+     * in case the object does not contain the given property.
      * @example
      *   var prop = this._property('fillOpacity', 0.5);
      *   prop({}); // -> 0.5
-     *   prop({fillOpacity: 0.75}); // -> 0.75
+     *   prop({properties: {fillOpacity: 0.75}}); // -> 0.75
      */
     _property: function (key, def) {
         return function (d) {
+            d = d.properties || {};
             return _.has(d, key) ? d[key] : def;
         };
     },
