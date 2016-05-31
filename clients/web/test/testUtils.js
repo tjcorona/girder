@@ -1152,19 +1152,6 @@ girderTest.confirmDialog = function () {
     girderTest.waitForLoad();
 };
 
-girderTest.shimBlobBuilder = function () {
-    var oldPrototype = window.Blob.prototype;
-    window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder;
-    window.Blob = function (data) {
-        var builder = new window.BlobBuilder();
-        _.each(data, function (d) {
-            builder.append(d);
-        });
-        return builder.getBlob();
-    };
-    window.Blob.prototype = oldPrototype;
-};
-
 /*
  * Loads a particular fragment as anonymous and checks whether the login dialog
  * appears.  Assumes you are logged out, or else you should pass logoutFirst=true.

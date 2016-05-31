@@ -1,9 +1,3 @@
-/**
- * As of v1.9.9, phantomJS does not correctly support sending Blobs in XHRs,
- * and the FormData API is extremely limited (i.e. does not support anything
- * other than "append"). We fake the chunk request to get around this by
- * wrapping XHR.prototype.send.
- */
 /* globals girderTest, describe, it, runs, expect, waitsFor, spyOn */
 
 /* used for adjusting minimum upload size */
@@ -785,8 +779,6 @@ describe('Test FileModel static upload functions', function () {
             return !!item;
         }, 'item creation');
     });
-
-    girderTest.shimBlobBuilder();
 
     it('test FileModel.uploadToFolder()', function () {
         var text, filename, speech, fileModel, file;
