@@ -383,7 +383,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                 prefix='/api/v1', isJson=True, basicAuth=None, body=None,
                 type=None, exception=False, cookie=None, token=None,
                 additionalHeaders=None, useHttps=False,
-                authHeader='Girder-Authorization'):
+                authHeader='Girder-Authorization', appPrefix=''):
         """
         Make an HTTP request.
 
@@ -408,6 +408,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :param useHttps: If True, pretend to use HTTPS.
         :param authHeader: The HTTP request header to use for authentication.
         :type authHeader: str
+        :param appPrefix: The CherryPy application prefix (mounted location without trailing slash)
+        :type appPrefix: str
         :returns: The cherrypy response object from the request.
         """
         if not params:
@@ -434,7 +436,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         elif params:
             qs = urllib.parse.urlencode(params)
 
-        app = cherrypy.tree.apps['']
+        app = cherrypy.tree.apps[appPrefix]
         request, response = app.get_serving(
             local, remote, 'http' if not useHttps else 'https', 'HTTP/1.1')
         request.show_tracebacks = True
