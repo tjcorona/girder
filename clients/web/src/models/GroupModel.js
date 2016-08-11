@@ -11,7 +11,7 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
      */
     sendInvitation: function (userId, accessType, request, params) {
         params = params || {};
-        girder.restRequest({
+        return girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/invitation',
             data: _.extend({
                 userId: userId,
@@ -40,7 +40,7 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
      * already been invited to the group.
      */
     joinGroup: function () {
-        girder.restRequest({
+        return girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/member',
             type: 'POST'
         }).done(_.bind(function (resp) {
@@ -61,7 +61,7 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
      * outstanding invitation to this group, call joinGroup instead.
      */
     requestInvitation: function () {
-        girder.restRequest({
+        return girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/member',
             type: 'POST'
         }).done(_.bind(function (resp) {
@@ -86,7 +86,7 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
         } else if (level === girder.AccessType.ADMIN) {
             role = 'admin';
         }
-        girder.restRequest({
+        return girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/' + role,
             data: {
                 userId: user.get('_id')
@@ -114,7 +114,7 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
         } else if (level === girder.AccessType.ADMIN) {
             role = 'admin';
         }
-        girder.restRequest({
+        return girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/' + role +
                 '?userId=' + userId,
             type: 'DELETE'
@@ -134,7 +134,7 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
      * @param userId The ID of the user to remove.
      */
     removeMember: function (userId) {
-        girder.restRequest({
+        return girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') +
                   '/member?userId=' + userId,
             type: 'DELETE'

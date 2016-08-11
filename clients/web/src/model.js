@@ -59,7 +59,7 @@ girder.Model = Backbone.Model.extend({
             }
         }, this);
 
-        girder.restRequest({
+        return girder.restRequest({
             path: path,
             type: type,
             data: data,
@@ -70,8 +70,6 @@ girder.Model = Backbone.Model.extend({
         }, this)).error(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
-
-        return this;
     },
 
     /**
@@ -97,7 +95,7 @@ girder.Model = Backbone.Model.extend({
         if (opts.ignoreError) {
             restOpts.error = null;
         }
-        girder.restRequest(restOpts).done(_.bind(function (resp) {
+        return girder.restRequest(restOpts).done(_.bind(function (resp) {
             this.set(resp);
             if (opts.extraPath) {
                 this.trigger('g:fetched.' + opts.extraPath);
@@ -107,8 +105,6 @@ girder.Model = Backbone.Model.extend({
         }, this)).error(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
-
-        return this;
     },
 
     /**
@@ -162,7 +158,7 @@ girder.Model = Backbone.Model.extend({
             args.error = null;
         }
 
-        girder.restRequest(args).done(_.bind(function () {
+        return girder.restRequest(args).done(_.bind(function () {
             if (this.collection) {
                 this.collection.remove(this);
             }
@@ -170,8 +166,6 @@ girder.Model = Backbone.Model.extend({
         }, this)).error(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
-
-        return this;
     },
 
     /**
@@ -204,7 +198,7 @@ girder.AccessControlledModel = girder.Model.extend({
             return;
         }
 
-        girder.restRequest({
+        return girder.restRequest({
             path: (this.altUrl || this.resourceName) + '/' + this.get('_id') + '/access',
             type: 'PUT',
             data: _.extend({
@@ -216,8 +210,6 @@ girder.AccessControlledModel = girder.Model.extend({
         }, this)).error(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
-
-        return this;
     },
 
     /**
@@ -234,7 +226,7 @@ girder.AccessControlledModel = girder.Model.extend({
         }
 
         if (!this.get('access') || force) {
-            girder.restRequest({
+            return girder.restRequest({
                 path: (this.altUrl || this.resourceName) + '/' + this.get('_id') + '/access',
                 type: 'GET'
             }).done(_.bind(function (resp) {
@@ -244,21 +236,21 @@ girder.AccessControlledModel = girder.Model.extend({
                     this.set('access', resp);
                 }
                 this.trigger('g:accessFetched');
+                return resp;
             }, this)).error(_.bind(function (err) {
                 this.trigger('g:error', err);
             }, this));
         } else {
             this.trigger('g:accessFetched');
+            return $.when(this.get('access'));
         }
-
-        return this;
     }
 });
 
 girder.models.MetadataMixin = {
     _sendMetadata: function (metadata, successCallback, errorCallback, opts) {
         opts = opts || {};
-        girder.restRequest({
+        return girder.restRequest({
             path: opts.path ||
                 ((this.altUrl || this.resourceName) + '/' + this.get('_id') + '/metadata'),
             contentType: 'application/json',

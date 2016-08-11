@@ -32,7 +32,7 @@ girder.models.ItemModel = girder.Model.extend({
      * Get the path to the root of the hierarchy
      */
     getRootPath: function (callback) {
-        girder.restRequest({
+        return girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/rootpath'
         }).done(_.bind(function (resp) {
             callback(resp);

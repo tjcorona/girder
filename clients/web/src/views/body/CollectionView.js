@@ -13,7 +13,7 @@
                     yesText: 'Delete',
                     escapedHtml: true,
                     confirmCallback: _.bind(function () {
-                        this.model.destroy().on('g:deleted', function () {
+                        this.model.on('g:deleted', function () {
                             girder.events.trigger('g:alert', {
                                 icon: 'ok',
                                 text: 'Collection deleted.',
@@ -21,7 +21,7 @@
                                 timeout: 4000
                             });
                             girder.router.navigate('collections', {trigger: true});
-                        });
+                        }).destroy();
                     }, this)
                 });
             }

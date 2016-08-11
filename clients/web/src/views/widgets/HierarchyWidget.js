@@ -343,17 +343,17 @@ girder.views.HierarchyWidget = girder.View.extend({
             escapedHtml: true,
             yesText: 'Delete',
             confirmCallback: _.bind(function () {
-                this.parentModel.destroy({
-                    throwError: true,
-                    progress: true
-                }).on('g:deleted', function () {
+                this.parentModel.on('g:deleted', function () {
                     if (type === 'collection') {
                         girder.router.navigate('collections', {trigger: true});
                     } else if (type === 'folder') {
                         this.breadcrumbs.pop();
                         this.setCurrentModel(this.breadcrumbs.slice(-1)[0]);
                     }
-                }, this);
+                }, this).destroy({
+                    throwError: true,
+                    progress: true
+                });
             }, this)
         };
         girder.confirm(params);

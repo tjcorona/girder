@@ -70,7 +70,7 @@
                 yesText: 'Delete',
                 escapedHtml: true,
                 confirmCallback: _.bind(function () {
-                    this.model.destroy().on('g:deleted', function () {
+                    this.model.on('g:deleted', function () {
                         girder.router.navigate(parentRoute, {trigger: true});
                     }).off('g:error').on('g:error', function () {
                         page.render();
@@ -80,7 +80,7 @@
                             type: 'danger',
                             timeout: 4000
                         });
-                    });
+                    }).destroy();
                 }, this)
             });
         },

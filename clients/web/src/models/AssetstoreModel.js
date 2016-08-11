@@ -13,7 +13,7 @@ girder.models.AssetstoreModel = girder.Model.extend({
     },
 
     import: function (params) {
-        girder.restRequest({
+        return girder.restRequest({
             path: 'assetstore/' + this.get('_id') + '/import',
             type: 'POST',
             data: params,
@@ -23,8 +23,6 @@ girder.models.AssetstoreModel = girder.Model.extend({
         }, this)).error(_.bind(function (resp) {
             this.trigger('g:error', resp);
         }, this));
-
-        return this;
     },
 
     save: function () {
@@ -32,6 +30,6 @@ girder.models.AssetstoreModel = girder.Model.extend({
             // Coerce to an octal string to disambiguate
             this.set('perms', this.get('perms').toString(8));
         }
-        girder.Model.prototype.save.call(this, arguments);
+        return girder.Model.prototype.save.call(this, arguments);
     }
 });

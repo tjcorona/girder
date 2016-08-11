@@ -763,7 +763,9 @@ describe('Test FileModel static upload functions', function () {
                 name: 'top level folder'
             }).on('g:saved', function () {
                 folder = _folder;
-            }).save();
+            });
+
+            _folder.save();
         });
 
         waitsFor(function () {
@@ -778,7 +780,9 @@ describe('Test FileModel static upload functions', function () {
                 name: 'an item'
             }).on('g:saved', function () {
                 item = _item;
-            }).save();
+            });
+
+            _item.save();
         });
 
         waitsFor(function () {
