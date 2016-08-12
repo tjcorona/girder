@@ -41,9 +41,10 @@ import pkg_resources
 from pkg_resources import iter_entry_points
 
 from girder import logprint
-from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE
+from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
+    SettingKey, TerminalColor
 from girder.models.model_base import ValidationException
-from girder.utility import config as _config, mail_utils, mkdir
+from girder.utility import config as _config, mail_utils, mkdir, model_importer
 
 _pluginWebroots = {}
 
@@ -210,10 +211,15 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
     if moduleName not in sys.modules:
         fp = None
         try:
+            # @todo this query is run for every plugin that's loaded
+            setting = model_importer.ModelImporter().model('setting')
+            routeTable = setting.get(SettingKey.ROUTE_TABLE)
+
             info = {
                 'name': name,
                 'config': appconf,
                 'serverRoot': root,
+                'serverRootPath': routeTable['girder'],
                 'apiRoot': apiRoot,
                 'pluginRootDir': os.path.abspath(pluginDir)
             }
