@@ -257,6 +257,15 @@ girder.restartServer = function () {
         waitForServer();
     }));
 };
+girder.restartServerPrompt = function () {
+    var params = {
+        text: 'Are you sure you want to restart the server?  This ' +
+            'will interrupt all running tasks for all users.',
+        yesText: 'Restart',
+        confirmCallback: girder.restartServer
+    };
+    girder.confirm(params);
+};
 /* Having these as object properties facilitates testing */
 girder.restartServer._callSystemRestart = function () {
     girder.restRequest({type: 'PUT', path: 'system/restart'});
