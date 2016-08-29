@@ -103,7 +103,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
             defaults: this.defaults,
             routes: this.settings['core.route_table'] || this.defaults['core.route_table'],
             routeKeys: _.sortBy(_.keys(this.settings['core.route_table'] ||
-                                       this.defaults['core.route_table']), function (a, b) {
+                                       this.defaults['core.route_table']), function (a) {
                                            return a.indexOf('core_') === 0 ? -1 : 0;
                                        }),
             JSON: window.JSON
