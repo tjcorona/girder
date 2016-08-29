@@ -77,12 +77,6 @@ module.exports = function (grunt) {
                     src: ['img/**'],
                     dest: 'clients/web/static/built/jsoneditor'
                 }]
-            },
-            fontello_config: {
-                files: [{
-                    src: 'clients/web/fontello.config.json',
-                    dest: 'clients/web/static/built/fontello.config.json'
-                }]
             }
         },
 
@@ -100,15 +94,15 @@ module.exports = function (grunt) {
             }
         },
 
-        fontello: {
-            ext_font: {
-                options: {
-                    config: 'clients/web/static/built/fontello.config.json',
-                    fonts: 'clients/web/static/built/fontello/font',
-                    styles: 'clients/web/static/built/fontello/css',
-                    // Create output directories
-                    force: true
-                }
+        shell: {
+            fontello: {
+                command: [
+                    'fontello-cli',
+                    '--config clients/web/fontello.config.json',
+                    '--css clients/web/static/built/fontello/css',
+                    '--font clients/web/static/built/fontello/font',
+                    'install'
+                ].join(' ')
             }
         },
 
@@ -242,9 +236,8 @@ module.exports = function (grunt) {
             'uglify:ext_js': {},
             'copy:swagger': {},
             'copy:jsoneditor': {},
-            'copy:fontello_config': {},
             'concat:ext_css': {},
-            'fontello:ext_font': {}
+            'shell:fontello': {}
         },
 
         default: {
