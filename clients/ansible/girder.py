@@ -34,7 +34,7 @@ except ImportError:
     HAS_GIRDER_CLIENT = False
 
 
-__version__ = "0.2.4"
+__version__ = "0.3.0"
 
 DOCUMENTATION = '''
 ---
@@ -189,7 +189,7 @@ options:
                           - Name of the assetstore
                   type:
                       required: true
-                      choices: ['filesystem', 'gridfs', 's3', 'hdfs']
+                      choices: ['filesystem', 'gridfs', 's3', 'hdfs', 'database']
                       description:
                           - Currently only 'filesystem' has been tested
                   readOnly:
@@ -429,6 +429,19 @@ options:
                     - list of local file paths
                     - files will be uploaded to the item
 
+     setting:
+        required: false
+        description:
+            - Get/set the values of system settings
+        options:
+            key:
+                required: true
+                description:
+                    - The key identifying this setting
+            value:
+                required: true if state = present, else false
+                description:
+                    - The value to set
 '''
 
 EXAMPLES = '''
@@ -1028,7 +1041,7 @@ class GirderClientModule(GirderClient):
     _include_methods = ['get', 'put', 'post', 'delete', 'patch',
                         'plugins', 'user', 'assetstore',
                         'collection', 'folder', 'item', 'files',
-                        'group']
+                        'group', 'setting']
 
     _debug = True
 
@@ -1625,17 +1638,22 @@ class GirderClientModule(GirderClient):
         "filesystem": 0,
         "girdfs": 1,
         "s3": 2,
-        "hdfs": "hdfs"
+        "hdfs": "hdfs",
+        "database": "database"
     }
 
     def __validate_hdfs_assetstore(self, *args, **kwargs):
         # Check if hdfs plugin is available,  enable it if it isn't
         pass
 
+    def __validate_database_assetstore(self, *args, **kwargs):
+        pass
+
     def assetstore(self, name, type, root=None, db=None, mongohost=None,
                    replicaset='', bucket=None, prefix='', accessKeyId=None,
                    secret=None, service='s3.amazonaws.com', host=None,
                    port=None, path=None, user=None, webHdfsPort=None,
+                   dbtype=None, dburi=None,
                    readOnly=False, current=False):
 
             # Fail if somehow we have an asset type not in assetstore_types
@@ -1664,7 +1682,11 @@ class GirderClientModule(GirderClient):
                      'port': port,
                      'path': path,
                      'user': user,
-                     'webHdfsPort': webHdfsPort}
+                     'webHdfsPort': webHdfsPort},
+            'database': {'name': name,
+                         'type': self.assetstore_types[type],
+                         'dbtype': dbtype,
+                         'dburi': dburi}
         }
 
         # Fail if we don't have all the required attributes
@@ -1704,7 +1726,7 @@ class GirderClientModule(GirderClient):
                 updateable = ["root", "mongohost", "replicaset", "bucket",
                               "prefix", "db", "accessKeyId", "secret",
                               "service", "host", "port", "path", "user",
-                              "webHdfsPort", "current"]
+                              "webHdfsPort", "current", "dbtype", "dburi"]
 
                 # tuples of (key,  value) for fields that can be updated
                 # in the assetstore
@@ -1718,7 +1740,7 @@ class GirderClientModule(GirderClient):
                                      for k in updateable
                                      if k in argument_hash[type].keys())
 
-                # if arg_hash_items not a proper subset of assetstore_items
+                # if arg_hash_items not a subset of assetstore_items
                 if not arg_hash_items <= assetstore_items:
                     # Update
                     ret = self.put("assetstore/%s" % id,
@@ -1748,6 +1770,52 @@ class GirderClientModule(GirderClient):
                 ret = self.delete("assetstore/%s" % id,
                                   parameters=argument_hash[type])
                 self.changed = True
+
+        return ret
+
+    def setting(self, key, value=None):
+        ret = {}
+        list_value = isinstance(value, list)
+
+        if self.module.params['state'] == 'present':
+            # Get existing setting value to determine self.changed
+            existing_value = self.get('system/setting', parameters={'key': key})
+
+            params = {
+                'key': key,
+                'value': json.dumps(value) if list_value else value
+            }
+
+            try:
+                response = self.put('system/setting', parameters=params)
+            except HttpError as e:
+                self.fail(json.loads(e.responseText)['message'])
+
+            if response and list_value:
+                self.changed = set(existing_value) != set(value)
+            elif response:
+                self.changed = existing_value != value
+
+            if self.changed:
+                ret['previous_value'] = existing_value
+                ret['current_value'] = value
+            else:
+                ret['previous_value'] = ret['current_value'] = existing_value
+
+        elif self.module.params['state'] == 'absent':
+            # Removing a setting is a way of explicitly forcing it to be the default
+            existing_value = self.get('system/setting', parameters={'key': key})
+            default = self.get('system/setting', parameters={'key': key, 'default': 'default'})
+
+            if existing_value != default:
+                try:
+                    response = self.delete('system/setting', parameters={'key': key})
+                    self.changed = True
+
+                    ret['previous_value'] = existing_value
+                    ret['current_value'] = default
+                except HttpError as e:
+                    self.fail(json.loads(e.responseText)['message'])
 
         return ret
 
