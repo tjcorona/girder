@@ -1,16 +1,19 @@
 girder.views.jobs_JobListWidget = girder.View.extend({
     events: {
-        'click .g-job-trigger-link': function (e) {
+        'click .g-job-checkbox-menu input': function (e) {
             var cid = $(e.target).attr('cid');
             this.trigger('g:jobClicked', this.collection.get(cid));
         }
     },
 
     initialize: function (settings) {
+        var self = this;
         this.columns = settings.columns || this.columnEnum.COLUMN_ALL;
         this.filter = settings.filter || {
             userId: girder.currentUser.id
         };
+        this.typeFilter = {};
+        this.statusFilter = {};
 
         this.collection = new girder.collections.JobCollection();
         this.collection.sortField = settings.sortField || 'created';
@@ -31,6 +34,28 @@ girder.views.jobs_JobListWidget = girder.View.extend({
             parentView: this
         });
 
+        this.filterTypeMenuWidget = new girder.views.jobs.CheckBoxMenuWidget({
+            title: 'Type',
+            values: [],
+            parentView: this
+        });
+
+        this.filterTypeMenuWidget.on('g:triggerCheckBoxMenuChanged', function (e) {
+            self.typeFilter = e;
+            self.render();
+        });
+
+        this.filterStatusMenuWidget = new girder.views.jobs.CheckBoxMenuWidget({
+            title: 'Status',
+            values: [],
+            parentView: this
+        });
+
+        this.filterStatusMenuWidget.on('g:triggerCheckBoxMenuChanged', function (e) {
+            self.statusFilter = e;
+            self.render();
+        });
+
         girder.eventStream.on('g:event.job_status', this._statusChange, this);
     },
 
@@ -44,8 +69,10 @@ girder.views.jobs_JobListWidget = girder.View.extend({
     ], 'COLUMN_ALL'),
 
     render: function () {
+        var jobs = this._filterJobs(this.collection.toArray()), types, states;
+
         this.$el.html(girder.templates.jobs_jobList({
-            jobs: this.collection.toArray(),
+            jobs: jobs,
             showHeader: this.showHeader,
             columns: this.columns,
             columnEnum: this.columnEnum,
@@ -53,6 +80,22 @@ girder.views.jobs_JobListWidget = girder.View.extend({
             triggerJobClick: this.triggerJobClick,
             girder: girder
         }));
+
+        types = _.uniq(this.collection.toArray().map(function (job) {
+            return job.attributes.type;
+        }));
+
+        this._updateFilter(this.typeFilter, types);
+        this.filterTypeMenuWidget.setValues(this.typeFilter);
+
+        states = _.uniq(this.collection.toArray().map(function (job) {
+            return girder.jobs_JobStatus.text(job.attributes.status);
+        }));
+        this._updateFilter(this.statusFilter, states);
+        this.filterStatusMenuWidget.setValues(this.statusFilter);
+
+        this.filterTypeMenuWidget.setElement(this.$('.g-job-type-header')).render();
+        this.filterStatusMenuWidget.setElement(this.$('.g-job-status-header')).render();
 
         if (this.showPaging) {
             this.paginateWidget.setElement(this.$('.g-job-pagination')).render();
@@ -86,6 +129,30 @@ girder.views.jobs_JobListWidget = girder.View.extend({
         window.setTimeout(function () {
             tr.removeClass('g-highlight');
         }, 1000);
+    },
+    _filterJobs: function (jobs) {
+        var filterJobs = [], self = this;
+
+        filterJobs = this.collection.filter(function (job) {
+            return ((_.isEmpty(self.typeFilter) || _.isUndefined(job.attributes.type) ||
+                        self.typeFilter[job.attributes.type]) &&
+                    (_.isEmpty(self.statusFilter) || _.isUndefined(job.attributes.status) ||
+                        self.statusFilter[girder.jobs_JobStatus.text(job.attributes.status)]));
+        });
+
+        return filterJobs;
+    },
+    _updateFilter: function (filter, newValues) {
+        var currentValues = _.keys(filter), added, removed;
+        added = _.difference(newValues, currentValues);
+        removed = _.difference(currentValues, newValues);
+
+        _.each(added, function (value) {
+            filter[value] = true;
+        });
+        _.each(removed, function (value) {
+            delete filter[value];
+        });
     }
 });
 
