@@ -39,6 +39,7 @@ girder.views.jobs_JobListWidget = girder.View.extend({
         'COLUMN_TITLE',
         'COLUMN_UPDATED',
         'COLUMN_OWNER',
+        'COLUMN_TYPE',
         'COLUMN_STATUS'
     ], 'COLUMN_ALL'),
 
